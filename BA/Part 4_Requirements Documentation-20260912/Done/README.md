@@ -3,16 +3,16 @@
 **Проєкт:** «VNS» — власна навчальна платформа університету (`"VNS" — Custom University Learning Platform`)
 **Команда:** «20/80» · **Мова артефактів:** англійська (як у зразках `User_Story_Sample.docx` і `DoR_DoD_Sample.pdf`)
 
-> Ця версія — `Done/AI`. Версія `Done/Manual` лишається за командою, яка працює вручну.
+> Ця версія — `Done/Manual`. Версія `Done/AI` поки порожня.
 
 ## Артефакти
 
 | № | Файл | Що це | Зразок / шаблон |
 |---|---|---|---|
-| 1 | `AI/Artifacts/1. User Stories_VNS.docx` | 3 user stories з BDD-критеріями приймання (Given / And / When / Then) | `Samples/User_Story_Sample.docx` |
-| 2 | `AI/Artifacts/2. DoR_DoD_VNS.docx` | Definition of Ready (9 пунктів) і Definition of Done (9 пунктів) таблицею | `Samples/DoR_DoD_Sample.pdf` |
-| — | `AI/FilledTemplates/User_Story_Template.docx` | ті самі 3 історії в шаблоні викладача: кольори role / feature / value, розділ `Acceptance Criteria (BDD)` | `Templates/User_Story_Template.docx` |
-| — | `AI/FilledTemplates/DoR_DoD_Template.docx` | ті самі DoR/DoD у шаблоні; кожен пункт DoR позначено літерою INVEST, якій він відповідає | `Templates/DoR_DoD_Template.docx` |
+| 1 | `Manual/Artifacts/1. User Stories_VNS.docx` | 3 user stories з BDD-критеріями приймання (Given / And / When / Then) | `Samples/User_Story_Sample.docx` |
+| 2 | `Manual/Artifacts/2. DoR_DoD_VNS.docx` | Definition of Ready (9 пунктів) і Definition of Done (9 пунктів) таблицею | `Samples/DoR_DoD_Sample.pdf` |
+| — | `Manual/FilledTemplates/User_Story_Template.docx` | ті самі 3 історії в шаблоні викладача: кольори role / feature / value, розділ `Acceptance Criteria (BDD)` | `Templates/User_Story_Template.docx` |
+| — | `Manual/FilledTemplates/DoR_DoD_Template.docx` | ті самі DoR/DoD у шаблоні; кожен пункт DoR позначено літерою INVEST, якій він відповідає | `Templates/DoR_DoD_Template.docx` |
 
 Як і в Частині 2: артефакт і заповнений шаблон мають **однаковий текст**, різниться лише оформлення.
 `Company Name` замінено на назву проєкту й команди, як у Частині 2. Пояснювальний текст шаблону User Story
