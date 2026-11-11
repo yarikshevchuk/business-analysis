@@ -4,7 +4,7 @@
 **Команда:** «20/80» · **Мова діаграм і сценаріїв:** англійська, як в артефактах Частин 1–4
 
 > Частина 5 складається з двох лабораторних: **ЛР 1. Діаграма варіантів використання** і **ЛР 2. Діаграми класів** (`Samples/Лабораторна робота 1.docx`, `2.docx`).
-> Цей README описує `Done/AI`. Папку `Done/Manual` зробила інша частина команди. Обидві версії моделюють ту саму функцію (AI-помічник на сторінці лекції) з тим самим ключовим прецедентом, але AI-версія спирається на Story Map AI-версії Частини 4 і додає реєстрацію та вхід.
+> Цей README описує `Done/AI`. Папку `Done/Manual` зробила інша частина команди. Обидві версії моделюють ту саму функцію (AI-помічник на сторінці лекції) з тим самим ключовим прецедентом, але AI-версія спирається на Story Map AI-версії Частини 4 і додає вхід у систему.
 
 ## Що вимагає завдання
 
@@ -40,7 +40,7 @@
 
 | Пакет | Прецеденти | Актор | Джерело |
 |---|---|---|---|
-| Authorization | Sign in with the university email · Register with the student card number (+ `«extend»` «This student card is already registered») | Platform user / Student | Story Map: Get started → Sign in; реєстрація — Part 2 (Manual), Functional 1 і `Ідея_проекту.md`, 5.2 |
+| Authorization | Sign in with the university email (+ `«extend»` (password status) [first login] «Set my own password at first login») | Platform user | Story Map: Get started → Sign in; Part 2, Functional 1 |
 | Learning with the AI assistant | *Use AI study tools* (абстрактний) → Get an AI summary of a lecture · Take a self-check test on a topic · Make flashcards from a lecture · **Ask the AI assistant a question about a lecture** | Student | Story Map: Study topics, Ask questions; Make flashcards (Release 2) |
 | AI settings of a course | Choose the AI features of a course · Mark a lab as graded · See self-check results by topic | Lecturer | Part 2, Business Rule 1; Story Map: Check understanding (Release 2) |
 
@@ -50,7 +50,7 @@
 |---|---|---|
 | `«include»` | Get an answer with links to the slides (зв'язаний з External LLM API) | LLM API: «Answer using only the course materials»; Part 2, Functional 6 |
 | `«extend»` (graded task check) [graded lab] | Give hints instead of a ready solution | LLM API: «Refuse a full solution of a graded task»; Business Rule 1 |
-| `«extend»` (search result) [nothing found] | Show «Not found in the course materials» → далі `«extend»` Ask the group in the «Course Q&A» | «Answer using only the course materials»; wireframe, екран 2 |
+| `«extend»` (search result) [nothing found] | Show «Not found in the course materials» | LLM API: «Answer using only the course materials» |
 | `«extend»` (limit check) [daily limit reached] | Show «Daily AI limit reached» — розширює абстрактний *Use AI study tools*, тобто всі AI-інструменти | Part 2, Assumption 2 |
 | `«extend»` (summary lookup) [no saved summary] | Generate a new summary | LLM API: «Generate a lecture summary»; Assumption 2 (кеш) |
 | `«constraint»` | {the lecturer decides which AI features are on…}, {for a graded lab the AI never writes a complete solution} | Part 2, Business Rule 1 |
@@ -61,7 +61,7 @@
 
 **Чому External LLM API — другорядний актор.** Він нічого не ініціює, а лише генерує відповідь на запит платформи. У Story Map він так і позначений: «External LLM API · secondary actor · AI service». Лінії йдуть до тих прецедентів, де потрібна генерація: новий конспект, тест, флеш-картки, відповідь.
 
-**Чим AI-версія відрізняється від Manual:** пакет Authorization (реєстрація й вхід), абстрактний актор Platform user, тест і флеш-картки як окремі прецеденти, «See self-check results by topic» для викладача. Адміністратора тут нема, бо в Story Map AI-версії він другорядний актор, а не користувач цієї функції.
+**Чим AI-версія відрізняється від Manual:** пакет Authorization (вхід і зміна пароля при першому вході), абстрактний актор Platform user, тест і флеш-картки як окремі прецеденти, «See self-check results by topic» для викладача. Адміністратора тут нема, бо в Story Map AI-версії він другорядний актор, а не користувач цієї функції.
 
 ## Діаграма класів
 
@@ -96,6 +96,6 @@
 - **Тема.** ЛР посилаються на таблицю тем у Google Docs, але на 06/11/2026 у ній лише два рядки інших студенток, рядка нашої команди нема. Тому темою лишається проєкт VNS, як у Частинах 1–4. Варто підтвердити це у викладача.
 - **Діаграма класів** лишилася з попередньої версії (функція «здача й оцінювання лаби»); на рішення команди переробляли лише діаграму прецедентів.
 - **Як зроблено.** Файли `.drawio` створено скриптом за допомогою AI, PNG отримано рендером цих файлів рушієм draw.io.
-- **Реєстрація.** У Story Map і Частині 2 AI-версії облікові записи завантажуються з реєстру, окремої реєстрації там нема. Прецедент «Register with the student card number» додано на рішення команди; його джерело — Functional 1 Manual-версії Частини 2 і розділ 5.2 `Ідея_проекту.md`.
+- **Вхід без окремої реєстрації.** У Частині 2 AI-версії облікові записи завантажуються з реєстру університету (Assumption 1: «without student registration»), а вхід — за корпоративною поштою й паролем; початковий пароль (дата народження) треба змінити при першому вході (Functional 1). Тому замість реєстрації на діаграмі «Sign in with the university email» з розширенням «Set my own password at first login», як у Story Map.
 - **Тексти інтерфейсу** («Ask», «Daily AI limit reached») для AI-панелі в Частині 4 AI-версії не узгоджено; за DoR їх треба погодити разом з екраном лекції, якого у wireframe нема.
 - **Звіт на ВНС** (`Report by part 5`) поки не подано; у завданні на ВНС окремого опису немає.
