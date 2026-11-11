@@ -11,7 +11,7 @@
 | Вимога | Де виконано |
 |---|---|
 | ЛР 1: розглянути **одну функцію** сервісу, UML-модель у draw.io | `1. Use Case Diagram_VNS.drawio`; функція названа в рамці системи |
-| ЛР 1: виділити акторів | 3 актори: 2 головних, 1 другорядний |
+| ЛР 1: виділити акторів | 3 актори: 2 головних, 1 другорядний (як у Story Map Частини 4) |
 | ЛР 1: виділити ключовий прецедент, його компоненти й виключення | жовтий еліпс із товстою рамкою, сині `«include»`, червоні `«extend»` |
 | ЛР 1, рекомендації: успішний сценарій і сценарії всіх виключень | `2. Use Case Scenarios_VNS.docx` |
 | ЛР 1: `«extend»` має умову й посилання на точку розширення | підпис `«extend» (точка) [умова]`; точка ключового прецедента — в його еліпсі |
@@ -38,14 +38,16 @@
 
 | Елемент | Що на діаграмі | Джерело |
 |---|---|---|
-| Головні актори | Lecturer, Student | Part 3 (AI): Ihor, Sofiia |
-| Другорядний актор | Dean's office specialist: лише отримує результат | Part 3 (AI): Nataliia; US #4 |
+| Головні актори | Lecturer, Student | Part 3 (AI): Ihor, Sofiia; Part 4 (AI), Story Map: персони |
+| Другорядний актор | University registry: лише надає дані, тобто академічні групи та їхніх студентів | Part 4 (AI), Story Map: «University registry · secondary actor · data source»; Part 2 (AI), Assumption 1 |
 | **Ключовий прецедент** | Grade a submitted lab | Part 4 (AI), US #1 |
-| Інші прецеденти | Submit a lab report · View the grade and course progress · View the progress of the groups | wireframe, екран 3; US #1; US #4 |
-| Компоненти `«include»` | Check access to the course (спільний для чотирьох прецедентів) · Check the report file · List the submissions of the group · Check the points · Update the course progress | DoD п. 6; wireframe; US #1 |
-| Виключення `«extend»` | Reject points above the maximum («Points cannot be more than 10») · Reject the file (не PDF / DOCX або понад 20 MB) · «You do not have access to this page» | US #1; wireframe; US #4 |
+| Інші прецеденти | Submit a lab report · View the grade and course progress | wireframe, екран 3; US #1 |
+| Компоненти `«include»` | Check access to the course (спільний для трьох прецедентів) · Check the report file · List the submissions of the group · Check the points · Update the course progress · Get the students of the group (дані з реєстру для списку здач) | DoD п. 6; wireframe; US #1; Story Map |
+| Виключення `«extend»` | Reject points above the maximum («Points cannot be more than 10») · Reject the file (не PDF / DOCX або понад 20 MB) · «You do not have access to this page» | US #1; wireframe; DoD п. 6 |
 
 **Чому перевірка доступу — `include`, а відмова — `extend`.** Перевірка виконується завжди, тому вона компонент. Повідомлення про відмову з'являється лише за умови, що доступу нема, тому це виключення.
+
+**Чому реєстр — другорядний актор.** Студент і викладач самі запускають прецеденти, тому вони головні. Реєстр університету нічого не ініціює, а лише надає дані про академічні групи та їхніх студентів, тому він другорядний. Так само він позначений у Story Map Частини 4. Фахівця деканату (персона Nataliia) на діаграмі нема: у Story Map це головна персона, але не учасник функції здачі й оцінювання лаби.
 
 ## Діаграма класів
 
@@ -53,32 +55,32 @@
 
 | Пакет | Класи | Роль |
 |---|---|---|
-| Boundary | `LabPage`, `GradingPage`, `Dashboard`, `GroupsPage`, `IFileStorage`, `FileStorageClient` | екрани й робота зі сховищем файлів |
+| Boundary | `LabPage`, `GradingPage`, `Dashboard`, `IFileStorage`, `FileStorageClient`, `RegistryClient` | екрани, робота зі сховищем файлів і зв'язок із реєстром університету |
 | Control | `SubmissionController`, `GradingController`, `ProgressService`, `AccessService` | логіка прецедентів |
-| Entity | `Course`, `Lab`, `Submission`, `Grade`, `CourseProgress`, `User`, `Student`, `Lecturer`, `DeanOfficeSpecialist`, `Group` | дані предметної області |
+| Entity | `Course`, `Lab`, `Submission`, `Grade`, `CourseProgress`, `User`, `Student`, `Lecturer`, `Group` | дані предметної області |
 
 | Відношення | Приклад | Чому так |
 |---|---|---|
 | Композиція | `Course` ◆ `Lab` ◆ `Submission` ◆ `Grade`, `Student` ◆ `CourseProgress` | частина не існує без цілого |
 | Агрегація | `Group` ◇ `Student` | студент існує й без групи |
-| Узагальнення | `Student`, `Lecturer`, `DeanOfficeSpecialist` → *`User`* `{incomplete, disjoint}` | спільні поля в абстрактному класі; `incomplete`, бо адміністратора в цій функції нема, `disjoint`, бо один акаунт має одну роль |
+| Узагальнення | `Student`, `Lecturer` → *`User`* `{incomplete, disjoint}` | спільні поля в абстрактному класі; `incomplete`, бо інші ролі платформи (адміністратор, деканат) у цій функції не беруть участі, `disjoint`, бо один акаунт має одну роль |
 | Реалізація | `FileStorageClient` ⇢ `IFileStorage` | сховище можна замінити, логіка здачі від цього не зміниться |
-| Залежність `«use»` | `SubmissionController` ⇢ `IFileStorage`, `AccessService` | контролер лише викликає їхні операції |
+| Залежність `«use»` | `SubmissionController` ⇢ `IFileStorage`, `AccessService`; `GradingController` ⇢ `RegistryClient` | контролер лише викликає їхні операції |
 | Асоціація | `Submission` «Is sent by» `Student`, `Lecturer` «Teaches» `Course` | кратності на обох кінцях |
 
 - **Абстрактна операція:** *`getRole()`* у `User`, її реалізують нащадки.
 - **Похідний атрибут:** `/stillAvailable` у `CourseProgress` рахується з `earned` і `maximum`.
-- **Числа з вимог:** `maxPoints = 10` у `Lab`, `100` у `Course`, `maxFileSizeMb = 20`, `riskLimit = 3` (студент «At risk» після 3 пропущених дедлайнів, US #4).
+- **Числа з вимог:** `maxPoints = 10` у `Lab`, `100` у `Course`, `maxFileSizeMb = 20`.
 - **Бізнес-правило 2** (офіційну оцінку ставить лише викладач) показане асоціацією `Grade` «Is set by» `Lecturer` і тим, що зберігає оцінку лише `GradingController`.
 
 **Чек-лист лекції («Чек-лист правильної UML-моделі»)** перевірено скриптом: імена класів унікальні, у кожного три секції, усі атрибути й операції мають квантор видимості, кожна асоціація має кратність на обох кінцях, композицію й агрегацію розрізнено.
 
-**Правила лекції 7:** актори працюють лише з граничними класами, а операції сутностей викликають лише керуючі класи. Лінії між сутностями — це структура (що з чого складається), а не виклики, тому правилу вони не суперечать.
+**Правила лекції 7:** актори працюють лише з граничними класами, а операції сутностей викликають лише керуючі класи. Тому для другорядного актора University registry є граничний клас `RegistryClient`: через нього `GradingController` отримує студентів групи для списку здач. Лінії між сутностями — це структура (що з чого складається), а не виклики, тому правилу вони не суперечать.
 
 ## Примітки
 
 - **Тема.** ЛР посилаються на таблицю тем у Google Docs, але на 06/11/2026 у ній лише два рядки інших студенток, рядка нашої команди нема. Тому темою лишається проєкт VNS, як у Частинах 1–4. Варто підтвердити це у викладача.
 - **Як зроблено.** Файли `.drawio` створено скриптом за допомогою AI, PNG отримано рендером цих файлів рушієм draw.io.
 - **Сховище файлів** — технічна частина платформи, тому на діаграмі прецедентів актором не показане. Ідея підписаних посилань — з `Ідея_проекту.md`, розділ 10; вимог до конкретного сховища нема.
-- **`GradingPage`** — це вигляд сторінки лаби для викладача. Окремого екрана у wireframe нема, його треба домалювати за DoR, як і екран «Groups» для деканату.
+- **`GradingPage`** — це вигляд сторінки лаби для викладача. Окремого екрана у wireframe нема, його треба домалювати за DoR.
 - **Звіт на ВНС** (`Report by part 5`) поки не подано; у завданні на ВНС окремого опису немає.
