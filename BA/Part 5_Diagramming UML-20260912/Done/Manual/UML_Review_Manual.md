@@ -71,7 +71,7 @@
 - `Lecturer`, `Administrator` і `Student` тепер мають лише власні дані й операції (`Lecturer` і `Administrator` без операцій, у `Student` лишився `getCourses`).
 - `ExternalLlmClient` і `ILlmClient` позначено `«boundary»` і `«interface»`: це «вікно» у зовнішню систему LLM. `MaterialIndex` позначено `«control»`.
 - Кольори: boundary — блакитні, control — зелені, entity — жовті, enum — фіолетовий.
-- Правила Л10 винесено в нотатку «Rules of the model» на діаграмі.
+- Перелік `AiFeature` (`«enumeration»`) з'єднано пунктиром `«use»` з `AiUsageRecord`, бо той має атрибут `feature : AiFeature`. Решта класів використовує його лише в параметрах методів, тому окремі лінії до них не малювались.
 
 **Що це означає на захисті.** Якщо запитають «чому Lecturer не має switchAiFeature», відповідь така: за Л10 сутності викликає лише контролер, а користувач працює лише зі сторінками. Лінії між сутностями (`Course ◆ Lecture`) — це структура, а не виклики, тому правилу вони не суперечать.
 
@@ -118,7 +118,7 @@
 - Рядок «Extension points» у UC-04 доповнено до повного списку: access result, limit check, question check, material search, fallback, LLM response.
 - UC-02, крок 3a: додано посилання на `summary lookup` і на UC-14.
 
-### 5.3. Діаграма класів (`3. Class Diagram_VNS`)
+### 5.3. Діаграма класів (`2. Class Diagram_VNS`)
 Діаграму перебудовано, класи й зв'язки перекомпоновано. Список правил:
 
 | № | Правило | Що зроблено |
