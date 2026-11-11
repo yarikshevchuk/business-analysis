@@ -17,7 +17,7 @@
 | ЛР 1: `«extend»` має умову й посилання на точку розширення | підпис `«extend» (точка) [умова]`; точки розширення вписано в базові еліпси |
 | ЛР 2: на прецедентному рівні побудувати класи для цієї ж функції | `3. Class Diagram_VNS.drawio` |
 | ЛР 2: описати властивості й методи | усі класи мають три секції; порожня секція теж відділена лінією |
-| ЛР 2: побудувати відношення між класами | асоціація, узагальнення, композиція, залежність, реалізація |
+| ЛР 2: побудувати відношення між класами | асоціація, узагальнення, агрегація, композиція, залежність, реалізація |
 
 ## Артефакти
 
@@ -69,29 +69,32 @@
 
 | Пакет | Класи | Роль |
 |---|---|---|
-| Boundary | `SignInPage`, `LecturePage`, `CourseAISettingsPage`, `ILLMClient`, `ExternalLLMClient` | екрани для кожного пакета прецедентів і зв'язок із LLM API |
-| Control | `AuthController`, `AIAssistantController`, `CourseAISettingsController` | логіка прецедентів: реєстрація й вхід, AI-інструменти, налаштування курсу |
-| Entity | `RegistryRecord`, `Course`, `AISettings`, `Lab`, `QAPost`, `Lecture`, `Slide`, `AIResult`, `Summary`, `SelfCheckTest`, `FlashcardSet`, `AIAnswer`, `TestAttempt`, `User`, `Student`, `Lecturer` | дані предметної області |
+| Boundary | `LabPage`, `GradingPage`, `Dashboard`, `IFileStorage`, `FileStorageClient`, `RegistryClient` | екрани, робота зі сховищем файлів і зв'язок із реєстром університету |
+| Control | `SubmissionController`, `GradingController`, `ProgressService`, `AccessService` | логіка прецедентів |
+| Entity | `Course`, `Lab`, `Submission`, `Grade`, `CourseProgress`, `User`, `Student`, `Lecturer`, `Group` | дані предметної області |
 
 | Відношення | Приклад | Чому так |
 |---|---|---|
-| Композиція | `Course` ◆ `Lecture` ◆ `Slide`, `Course` ◆ `AISettings`, `Lab`, `QAPost` | частина не існує без курсу |
-| Узагальнення | `Summary`, `SelfCheckTest`, `FlashcardSet`, `AIAnswer` → *`AIResult`* `{complete, disjoint}`; `Student`, `Lecturer` → *`User`* `{incomplete, disjoint}` | спільні поля (позначка «AI-generated», джерела) в абстрактному класі; у `User` `incomplete`, бо адміністратор у цій функції не бере участі |
-| Реалізація | `ExternalLLMClient` ⇢ `ILLMClient` | постачальника LLM можна замінити, логіка помічника від цього не зміниться |
-| Залежність `«use»` | `AIAssistantController` ⇢ `ILLMClient` | контролер лише викликає операцію `generate()` |
-| Асоціація | `Slide` «Is the source of» `AIResult`, `AIAnswer` «Is asked by» `Student`, `Student` «Takes» `TestAttempt` | кратності на обох кінцях |
+| Композиція | `Course` ◆ `Lab` ◆ `Submission` ◆ `Grade`, `Student` ◆ `CourseProgress` | частина не існує без цілого |
+| Агрегація | `Group` ◇ `Student` | студент існує й без групи |
+| Узагальнення | `Student`, `Lecturer` → *`User`* `{incomplete, disjoint}` | спільні поля в абстрактному класі; `incomplete`, бо інші ролі платформи (адміністратор, деканат) у цій функції не беруть участі, `disjoint`, бо один акаунт має одну роль |
+| Реалізація | `FileStorageClient` ⇢ `IFileStorage` | сховище можна замінити, логіка здачі від цього не зміниться |
+| Залежність `«use»` | `SubmissionController` ⇢ `IFileStorage`, `AccessService`; `GradingController` ⇢ `RegistryClient` | контролер лише викликає їхні операції |
+| Асоціація | `Submission` «Is sent by» `Student`, `Lecturer` «Teaches» `Course` | кратності на обох кінцях |
 
-- **Реєстрація:** `AuthController` перевіряє `RegistryRecord` (номер студентського, `isUsed`), а при повторній реєстрації показує «This student card is already registered».
-- **Значення з вимог:** перемикачі `AISettings` за замовчуванням `false`, `Lab.isGraded`, `AIAnswer.isHintOnly` (Business Rule 1), `AIResult.mark = “AI-generated”`, `dailyLimit` і `Student.aiRequestsToday` (Assumption 2).
-- **Похідний атрибут:** `/isFound` в `AIAnswer` — чи знайшлося хоча б одне джерело.
+- **Абстрактна операція:** *`getRole()`* у `User`, її реалізують нащадки.
+- **Похідний атрибут:** `/stillAvailable` у `CourseProgress` рахується з `earned` і `maximum`.
+- **Числа з вимог:** `maxPoints = 10` у `Lab`, `100` у `Course`, `maxFileSizeMb = 20`.
+- **Бізнес-правило 2** (офіційну оцінку ставить лише викладач) показане асоціацією `Grade` «Is set by» `Lecturer` і тим, що зберігає оцінку лише `GradingController`.
 
-**Чек-лист лекції («Чек-лист правильної UML-моделі»)** перевірено скриптом: імена класів унікальні, у кожного три секції, усі атрибути й операції мають квантор видимості, кожна асоціація має кратність на обох кінцях.
+**Чек-лист лекції («Чек-лист правильної UML-моделі»)** перевірено скриптом: імена класів унікальні, у кожного три секції, усі атрибути й операції мають квантор видимості, кожна асоціація має кратність на обох кінцях, композицію й агрегацію розрізнено.
 
-**Правила лекції 7:** актори працюють лише з граничними класами, а операції сутностей викликають лише керуючі класи. Для другорядного актора External LLM API граничний клас — `ExternalLLMClient`. Лінії між сутностями — це структура (що з чого складається), а не виклики.
+**Правила лекції 7:** актори працюють лише з граничними класами, а операції сутностей викликають лише керуючі класи. Тому для другорядного актора University registry є граничний клас `RegistryClient`: через нього `GradingController` отримує студентів групи для списку здач. Лінії між сутностями — це структура (що з чого складається), а не виклики, тому правилу вони не суперечать.
 
 ## Примітки
 
 - **Тема.** ЛР посилаються на таблицю тем у Google Docs, але на 06/11/2026 у ній лише два рядки інших студенток, рядка нашої команди нема. Тому темою лишається проєкт VNS, як у Частинах 1–4. Варто підтвердити це у викладача.
+- **Діаграма класів** лишилася з попередньої версії (функція «здача й оцінювання лаби»); на рішення команди переробляли лише діаграму прецедентів.
 - **Як зроблено.** Файли `.drawio` створено скриптом за допомогою AI, PNG отримано рендером цих файлів рушієм draw.io.
 - **Реєстрація.** У Story Map і Частині 2 AI-версії облікові записи завантажуються з реєстру, окремої реєстрації там нема. Прецедент «Register with the student card number» додано на рішення команди; його джерело — Functional 1 Manual-версії Частини 2 і розділ 5.2 `Ідея_проекту.md`.
 - **Тексти інтерфейсу** («Ask», «Daily AI limit reached») для AI-панелі в Частині 4 AI-версії не узгоджено; за DoR їх треба погодити разом з екраном лекції, якого у wireframe нема.
