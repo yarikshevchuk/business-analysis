@@ -65,37 +65,42 @@
 
 ## Діаграма класів
 
-Класи поділені на три пакети за лекцією 7: граничні, керуючі й сутності.
+Класи поділені на три пакети за лекцією 7: граничні, керуючі й сутності. Діаграма описує AI-інструменти функції: питання до AI, конспект, тест із картками, налаштування курсу та вхід.
 
 | Пакет | Класи | Роль |
 |---|---|---|
-| Boundary | `LabPage`, `GradingPage`, `Dashboard`, `IFileStorage`, `FileStorageClient`, `RegistryClient` | екрани, робота зі сховищем файлів і зв'язок із реєстром університету |
-| Control | `SubmissionController`, `GradingController`, `ProgressService`, `AccessService` | логіка прецедентів |
-| Entity | `Course`, `Lab`, `Submission`, `Grade`, `CourseProgress`, `User`, `Student`, `Lecturer`, `Group` | дані предметної області |
+| Boundary | `SignInPage`, `AiPanel`, `SummaryTab`, `StudyToolsTab`, `CourseAiSettingsPage`, `ILlmClient`, `LlmGateway` | екрани AI-інструментів і зв'язок із зовнішнім LLM API |
+| Control | `AuthController`, `QuestionService`, `GradedTaskGuard`, `SlideSearch`, `SummaryService`, `StudyToolsService`, `CourseAiSettingsController` | логіка прецедентів UC-1…UC-10 |
+| Entity | `Course`, `Lecture`, `Slide`, `SlideLink`, `Lab`, `AiSettings`, `DailyUsage`, `AiResult` (абстрактний) → `Answer`, `Summary`, `SelfCheckTest`, `FlashcardSet`; `TestAttempt`, `User` (абстрактний) → `Student`, `Lecturer` | дані предметної області |
+
+| Прецедент | Класи |
+|---|---|
+| UC-1 питання до AI | `AiPanel` → `QuestionService` → `DailyUsage`, `GradedTaskGuard` (→ `Lab`), `SlideSearch` (→ `Slide`), `ILlmClient`; створює `Answer` із `SlideLink` |
+| UC-4 конспект | `SummaryTab` → `SummaryService` → `Lecture.getSavedSummary()`, `ILlmClient`; створює `Summary` |
+| UC-5, UC-6 тест і картки | `StudyToolsTab` → `StudyToolsService` → `ILlmClient`; `SelfCheckTest`, `FlashcardSet`, `TestAttempt` |
+| UC-7 вхід | `SignInPage` → `AuthController` → `User` |
+| UC-8, UC-9, UC-10 | `CourseAiSettingsPage` → `CourseAiSettingsController` → `AiSettings`, `Lab.markAsGraded()`, `TestAttempt` |
 
 | Відношення | Приклад | Чому так |
 |---|---|---|
-| Композиція | `Course` ◆ `Lab` ◆ `Submission` ◆ `Grade`, `Student` ◆ `CourseProgress` | частина не існує без цілого |
-| Агрегація | `Group` ◇ `Student` | студент існує й без групи |
-| Узагальнення | `Student`, `Lecturer` → *`User`* `{incomplete, disjoint}` | спільні поля в абстрактному класі; `incomplete`, бо інші ролі платформи (адміністратор, деканат) у цій функції не беруть участі, `disjoint`, бо один акаунт має одну роль |
-| Реалізація | `FileStorageClient` ⇢ `IFileStorage` | сховище можна замінити, логіка здачі від цього не зміниться |
-| Залежність `«use»` | `SubmissionController` ⇢ `IFileStorage`, `AccessService`; `GradingController` ⇢ `RegistryClient` | контролер лише викликає їхні операції |
-| Асоціація | `Submission` «Is sent by» `Student`, `Lecturer` «Teaches» `Course` | кратності на обох кінцях |
+| Композиція | `Course` ◆ `Lecture` ◆ `Slide`, `Course` ◆ `Lab`, `Course` ◆ `AiSettings`, `AiResult` ◆ `SlideLink` | частина не існує без цілого |
+| Узагальнення | `Answer`, `Summary`, `SelfCheckTest`, `FlashcardSet` → *`AiResult`* `{complete, disjoint}`; `Student`, `Lecturer` → *`User`* `{incomplete, disjoint}` | спільні поля й помітка «AI-generated» в одному класі |
+| Реалізація | `LlmGateway` ⇢ `ILlmClient` | постачальника LLM можна замінити |
+| Залежність `«use»` | `QuestionService` ⇢ `GradedTaskGuard`, `SlideSearch`, `ILlmClient`; `SummaryService`, `StudyToolsService` ⇢ `ILlmClient` | сервіс лише викликає їхні операції |
+| Асоціація | `Lecture` «Has saved» `Summary` (1 до 0..1), `SlideLink` «Points to» `Slide`, `Student` «Takes» `TestAttempt`, `Student` «Has» `DailyUsage` | кратності на обох кінцях |
 
-- **Абстрактна операція:** *`getRole()`* у `User`, її реалізують нащадки.
-- **Похідний атрибут:** `/stillAvailable` у `CourseProgress` рахується з `earned` і `maximum`.
-- **Числа з вимог:** `maxPoints = 10` у `Lab`, `100` у `Course`, `maxFileSizeMb = 20`.
-- **Бізнес-правило 2** (офіційну оцінку ставить лише викладач) показане асоціацією `Grade` «Is set by» `Lecturer` і тим, що зберігає оцінку лише `GradingController`.
+- **Абстрактні операції:** *`show()`* в `AiResult`, *`getRole()`* в `User`.
+- **Похідний атрибут:** `/remaining` у `DailyUsage` рахується з `limit` і `requests`.
+- **Правила з вимог:** усі AI-функції вимкнені, доки викладач їх не ввімкне (`AiSettings`), для оцінюваної лаби AI дає лише підказки (`Lab.graded`, `Answer.isHintOnly`), кожен результат має помітку «AI-generated» (`AiResult.mark`).
+- **Зв'язок із Частиною 6:** об'єкти й операції в діаграмах Частини 6 (AI) взято з цієї діаграми: `process`, `remaining`, `count`, `isGradedTask`, `isGraded`, `find`, `getText`, `generate`, `showAnswer`, `showMessage`.
 
-**Чек-лист лекції («Чек-лист правильної UML-моделі»)** перевірено скриптом: імена класів унікальні, у кожного три секції, усі атрибути й операції мають квантор видимості, кожна асоціація має кратність на обох кінцях, композицію й агрегацію розрізнено.
-
-**Правила лекції 7:** актори працюють лише з граничними класами, а операції сутностей викликають лише керуючі класи. Тому для другорядного актора University registry є граничний клас `RegistryClient`: через нього `GradingController` отримує студентів групи для списку здач. Лінії між сутностями — це структура (що з чого складається), а не виклики, тому правилу вони не суперечать.
+**Правила лекції 7:** актори працюють лише з граничними класами, а операції сутностей викликають лише керуючі класи. Зовнішній LLM API доступний лише через граничний клас `LlmGateway`.
 
 ## Примітки
 
 - **Тема.** ЛР посилаються на таблицю тем у Google Docs, але на 06/11/2026 у ній лише два рядки інших студенток, рядка нашої команди нема. Тому темою лишається проєкт VNS, як у Частинах 1–4. Варто підтвердити це у викладача.
-- **Діаграма класів** лишилася з попередньої версії (функція «здача й оцінювання лаби»); на рішення команди переробляли лише діаграму прецедентів.
-- **Як зроблено.** Файли `.drawio` створено скриптом за допомогою AI, PNG отримано рендером цих файлів рушієм draw.io.
+- **Діаграма класів** 18/11/2026 переписана під AI-інструменти (раніше в ній була функція «здача й оцінювання лаби»), щоб узгодити її з діаграмою прецедентів і діаграмами Частини 6.
+- **Як зроблено.** Файли `.drawio` створено скриптом за допомогою AI, PNG діаграми прецедентів отримано рендером рушієм draw.io; `.drawio` і PNG діаграми класів згенеровано одним скриптом (PNG не експортовано з draw.io, `.drawio` лише перевірено як XML).
 - **Вхід без окремої реєстрації.** У Частині 2 AI-версії облікові записи завантажуються з реєстру університету (Assumption 1: «without student registration»), а вхід — за корпоративною поштою й паролем; початковий пароль (дата народження) треба змінити при першому вході (Functional 1). Тому замість реєстрації на діаграмі «Sign in with the university email» з розширенням «Set my own password at first login», як у Story Map.
 - **Тексти інтерфейсу** («Ask», «Daily AI limit reached») для AI-панелі в Частині 4 AI-версії не узгоджено; за DoR їх треба погодити разом з екраном лекції, якого у wireframe нема.
 - **Звіт на ВНС** (`Report by part 5`) поки не подано; у завданні на ВНС окремого опису немає.
